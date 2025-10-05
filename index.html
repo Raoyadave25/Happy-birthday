@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>For You — 7 Oct 2003</title>
+  <meta name="theme-color" content="#ffffff" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #0f172a; /* slate-900 */
+      --muted: #64748b; /* slate-500 */
+      --ring: rgba(15, 23, 42, 0.08);
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      --radius: 20px;
+    }
+
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .wrap {
+      min-height: 100dvh;
+      display: grid;
+      grid-template-rows: 1fr auto;
+    }
+
+    header {
+      padding: 28px 20px 8px;
+      text-align: center;
+    }
+    header h1 {
+      font-size: clamp(22px, 4vw, 28px);
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      margin: 0 0 6px;
+    }
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(12px, 2.8vw, 14px);
+    }
+
+    .card {
+      margin: 14px auto 0;
+      width: min(680px, 92vw);
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(2,6,23,0.06);
+      padding: clamp(18px, 5vw, 28px);
+    }
+
+    .timer {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .unit {
+      background: #fff;
+      border: 1px solid rgba(2,6,23,0.06);
+      border-radius: 16px;
+      padding: 14px 10px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .value {
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(24px, 8vw, 42px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.5px;
+    }
+    .label {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: clamp(10px, 2.5vw, 12px);
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    .cta {
+      margin-top: clamp(18px, 5vw, 26px);
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: #fff;
+      color: var(--fg);
+      border: 1px solid rgba(2,6,23,0.12);
+      border-radius: 999px;
+      padding: 14px 18px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .cta:focus-visible { outline: none; box-shadow: 0 0 0 6px var(--ring); }
+    .cta:hover { transform: translateY(-1px); box-shadow: 0 14px 34px rgba(15,23,42,0.08); }
+    .cta:active { transform: translateY(0); box-shadow: var(--shadow); }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 18px 0 24px;
+    }
+
+    /* Reveal Panel (updated for proper scroll + containment) */
+    .reveal {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      z-index: 50;
+      padding: 16px;
+      /* Important: allow the dialog itself to scroll if content is tall */
+      overflow: auto;
+      overscroll-behavior: contain;
+    }
+    .reveal[open] {
+      display: flex;                /* changed from grid to flex */
+      align-items: center;          /* center vertically but still allow scroll */
+      justify-content: center;      /* center horizontally */
+    }
+    .reveal-inner {
+      width: min(800px, 94vw);
+      /* Key: cap height, enable internal scroll when needed */
+      max-height: 92vh;
+      overflow: auto;
+      background: #fff;
+      border: 1px solid rgba(2,6,23,0.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(16px, 4.5vw, 28px);
+      -webkit-overflow-scrolling: touch; /* smoother iOS scrolling */
+    }
+    .hero-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 16px;
+      border: 1px solid rgba(2,6,23,0.06);
+      /* Make sure image never exceeds modal height */
+      max-height: 50vh;          /* base cap */
+      object-fit: contain;       /* show entire image without cropping */
+    }
+
+    @media (max-width: 480px) {
+      .reveal { padding: 10px; }
+      .reveal-inner { max-height: 90vh; padding: 14px; }
+      .hero-img { max-height: 40vh; }   /* smaller on phones */
+      .note { font-size: 14px; line-height: 1.6; }
+    }
+
+    @media (min-width: 1024px) {
+      .hero-img { max-height: 56vh; }   /* comfortable but contained */
+    }
+    .note {
+      margin-top: 14px;
+      white-space: pre-wrap;
+      line-height: 1.6;
+      font-size: clamp(14px, 3.5vw, 16px);
+    }
+    .close {
+      margin-top: 14px;
+      width: 100%;
+      border: 1px solid rgba(2,6,23,0.12);
+      background: #fff;
+      border-radius: 999px;
+      padding: 12px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    @media (min-width: 680px) {
+      .timer { grid-template-columns: repeat(6, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Since 7 Oct 2003</h1>
+      <p>A quiet count of time — minimal, honest, white.</p>
+    </header>
+
+    <main class="card" aria-live="polite">
+      <section class="timer" id="timer" aria-label="Time since 7 October 2003">
+        <div class="unit"><div class="value" id="years">0</div><div class="label">Years</div></div>
+        <div class="unit"><div class="value" id="months">0</div><div class="label">Months</div></div>
+        <div class="unit"><div class="value" id="days">0</div><div class="label">Days</div></div>
+        <div class="unit"><div class="value" id="hours">0</div><div class="label">Hours</div></div>
+        <div class="unit"><div class="value" id="minutes">0</div><div class="label">Minutes</div></div>
+        <div class="unit"><div class="value" id="seconds">0</div><div class="label">Seconds</div></div>
+      </section>
+
+      <button class="cta" id="cta" aria-haspopup="dialog" aria-controls="reveal">
+        ▶︎ Click me
+      </button>
+    </main>
+
+    <footer>
+      © 2025
+    </footer>
+  </div>
+
+  <!-- Reveal Panel -->
+  <dialog class="reveal" id="reveal" aria-label="Birthday message">
+    <div class="reveal-inner">
+      <!-- IMPORTANT: Put your image file inside your project and use a relative path below. -->
+      <img class="hero-img" id="heroImg" src="Assets/hero/main_birthday_1080.png" alt="Happy Birthday" />
+
+      <p class="note" id="note"></p>
+      <button class="close" id="close">Close</button>
+    </div>
+  </dialog>
+
+  <!-- Background music (no controls, preloaded) -->
+  <audio id="bgm" src="Assets/music/tujhe_sochta_hoon.mp3" preload="auto"></audio>
+
+  <script>
+    // --- CONFIG ---
+    const START = new Date(Date.UTC(2003, 9, 7, 0, 0, 0)); // 7 Oct 2003 (months are 0-indexed; 9 = October). Using UTC to avoid DST glitches.
+    const NOTE_TEXT = `There’s so much I want to say, so much I want to show, and so much I wish I could explain… but maybe some things are better left unsaid, unshown, and unexplained. Sometimes, what remains untouched stays the most beautiful.
+
+Still, from the bottom of my heart, I just want to wish you a very, very Happy Birthday, my girl. 🎂💖 Trust me, you were born to do great things, and I wish you all the success, health, and happiness in life. May every wish of yours be fulfilled, one by one, at the right time.
+
+This will be my last message to you -- filled with nothing but good wishes and hope. Hope that someday, somewhere, whether in this life or another, we’ll meet again-- with better understanding and more respect for each other.
+
+I won’t mention love, because we already had so much of it… more than words could ever measure. And I believe no one else could ever match the kind of love we shared.
+
+Goodbye, honey. I’m ending this chapter with endless love in my heart, and with the hope that you move forward and live the most beautiful life you’ve ever imagined.`;
+
+    // --- TIMER LOGIC (calendar-accurate years/months) ---
+    function addYears(date, years) {
+      const d = new Date(date);
+      d.setUTCFullYear(d.getUTCFullYear() + years);
+      return d;
+    }
+    function addMonths(date, months) {
+      const d = new Date(date);
+      d.setUTCMonth(d.getUTCMonth() + months);
+      return d;
+    }
+
+    function diffCalendar(from, to) {
+      let temp = new Date(from);
+      let years = 0, months = 0;
+
+      // Count full years
+      while (addYears(temp, 1) <= to) { temp = addYears(temp, 1); years++; }
+      // Count full months
+      while (addMonths(temp, 1) <= to) { temp = addMonths(temp, 1); months++; }
+
+      // Remaining exact millis for days/hours/minutes/seconds
+      let ms = to - temp;
+      const sec = 1000;
+      const min = 60 * sec;
+      const hr = 60 * min;
+      const day = 24 * hr;
+
+      const days = Math.floor(ms / day); ms -= days * day;
+      const hours = Math.floor(ms / hr); ms -= hours * hr;
+      const minutes = Math.floor(ms / min); ms -= minutes * min;
+      const seconds = Math.floor(ms / sec);
+
+      return { years, months, days, hours, minutes, seconds };
+    }
+
+    const el = {
+      years: document.getElementById('years'),
+      months: document.getElementById('months'),
+      days: document.getElementById('days'),
+      hours: document.getElementById('hours'),
+      minutes: document.getElementById('minutes'),
+      seconds: document.getElementById('seconds'),
+    };
+
+    function tick() {
+      const now = new Date();
+      // Use UTC fields to align with START
+      const to = new Date(Date.UTC(
+        now.getFullYear(), now.getMonth(), now.getDate(),
+        now.getHours(), now.getMinutes(), now.getSeconds()
+      ));
+      const d = diffCalendar(START, to);
+      el.years.textContent = d.years;
+      el.months.textContent = d.months;
+      el.days.textContent = d.days;
+      el.hours.textContent = d.hours.toString().padStart(2, '0');
+      el.minutes.textContent = d.minutes.toString().padStart(2, '0');
+      el.seconds.textContent = d.seconds.toString().padStart(2, '0');
+    }
+
+    tick();
+    setInterval(tick, 1000);
+
+    // --- CTA / Reveal ---
+    const cta = document.getElementById('cta');
+    const reveal = document.getElementById('reveal');
+    const closeBtn = document.getElementById('close');
+    const note = document.getElementById('note');
+
+    // --- AUDIO SETUP ---
+    const bgm = document.getElementById('bgm');
+    if (bgm) {
+      bgm.volume = 0.0; // start silent; we’ll fade to target
+      bgm.loop = true;
+    }
+    const TARGET_VOL = 0.45; // ~45%
+    let fadeTimer = null;
+
+    function fadeTo(target, ms = 800) {
+      if (!bgm) return;
+      clearInterval(fadeTimer);
+      const steps = 20;
+      const stepTime = ms / steps;
+      const start = bgm.volume;
+      let i = 0;
+      fadeTimer = setInterval(() => {
+        i++;
+        const t = i / steps;
+        bgm.volume = start + (target - start) * t;
+        if (i >= steps) { clearInterval(fadeTimer); bgm.volume = target; }
+      }, stepTime);
+    }
+
+    function safePlay() {
+      if (!bgm) return;
+      const tryPlay = bgm.play();
+      if (tryPlay && typeof tryPlay.then === 'function') {
+        tryPlay.then(() => { /* ok */ }).catch(() => {
+          // If blocked, show no UI; user already clicked, so usually it’ll succeed on mobile.
+        });
+      }
+    }
+
+    function stopAndReset() {
+      if (!bgm) return;
+      clearInterval(fadeTimer);
+      bgm.pause();
+      bgm.currentTime = 0;
+      bgm.volume = 0.0;
+    }
+
+    note.textContent = NOTE_TEXT;
+
+    cta.addEventListener('click', () => {
+      reveal.setAttribute('open', '');
+      const inner = document.querySelector('.reveal-inner');
+      if (inner) inner.scrollTop = 0;    // ensure top
+      reveal.scrollTop = 0;              // ensure container top
+      // Start background music on first CTA click
+      safePlay();
+      fadeTo(TARGET_VOL, 900);
+    });
+    closeBtn.addEventListener('click', () => {
+      reveal.removeAttribute('open');
+      // Stop and reset music on dialog close
+      stopAndReset();
+    });
+    // Close on outside click / ESC
+    reveal.addEventListener('click', (e) => {
+      if (e.target === reveal) {
+        reveal.removeAttribute('open');
+        // Stop and reset music on backdrop click
+        stopAndReset();
+      }
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        reveal.removeAttribute('open');
+        // Stop and reset music on ESC
+        stopAndReset();
+      }
+    });
+  </script>
+</body>
+</html>
